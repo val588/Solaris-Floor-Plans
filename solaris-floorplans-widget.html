@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,11 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Solaris Floor Plans Widget</title>
 <style>
-/* ── USAGE ──────────────────────────────────────────────────────────────
-   Drop this file anywhere, or copy everything inside <body> into your page.
-   The widget is fully self-contained — no external CSS or JS required.
-   ────────────────────────────────────────────────────────────────────── */
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 #solaris-fp-widget {
@@ -19,7 +15,6 @@
   width: 100%;
 }
 
-/* ── Filter tabs ── */
 .sfp-filters {
   display: flex;
   gap: 8px;
@@ -40,7 +35,6 @@
 .sfp-filter-btn:hover { border-color: #4a8a5a; color: #4a8a5a; }
 .sfp-filter-btn.active { background: #4a8a5a; color: #fff; border-color: #4a8a5a; }
 
-/* ── Grid ── */
 .sfp-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -62,7 +56,6 @@
 .sfp-card[data-hidden="true"] { display: none; }
 .sfp-card:focus-visible { outline: 2px solid #4a8a5a; outline-offset: 2px; }
 
-/* ── Card image ── */
 .sfp-card-img {
   position: relative;
   width: 100%;
@@ -80,7 +73,6 @@
 }
 .sfp-card:hover .sfp-card-img img { transform: scale(1.05); }
 
-/* ── Card badge ── */
 .sfp-badge {
   position: absolute;
   bottom: 0;
@@ -96,14 +88,12 @@
 .sfp-badge.brown { background: #7a2a18; }
 .sfp-badge.green  { background: #3a6e4a; }
 
-/* ── Card body ── */
 .sfp-card-body { padding: 12px 14px 14px; }
 .sfp-card-name  { color: #4a8a5a; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
 .sfp-card-meta  { font-size: 11px; color: #999; margin-bottom: 5px; }
 .sfp-card-price { font-size: 13px; font-weight: 600; color: #222; }
 .sfp-card-hot   { font-size: 11px; color: #c0392b; font-weight: 500; margin-left: 5px; }
 
-/* ── Disclaimer ── */
 .sfp-disclaimer {
   font-size: 10px;
   color: #bbb;
@@ -112,7 +102,6 @@
   text-align: center;
 }
 
-/* ── Overlay ── */
 .sfp-overlay {
   position: fixed;
   inset: 0;
@@ -128,7 +117,6 @@
 }
 .sfp-overlay.open { opacity: 1; pointer-events: all; }
 
-/* ── Modal ── */
 .sfp-modal {
   background: #fff;
   border-radius: 14px;
@@ -142,7 +130,6 @@
 }
 .sfp-overlay.open .sfp-modal { transform: translateY(0) scale(1); }
 
-/* ── Close button ── */
 .sfp-close {
   position: absolute;
   top: 10px;
@@ -163,7 +150,6 @@
 }
 .sfp-close:hover { background: #fff; }
 
-/* ── Gallery ── */
 .sfp-gallery { position: relative; background: #f5f5f2; }
 .sfp-gallery-main img {
   width: 100%;
@@ -192,7 +178,6 @@
 .sfp-gallery-thumbs img:hover { opacity: .85; }
 .sfp-gallery-thumbs img.active { opacity: 1; border-color: #4a8a5a; }
 
-/* ── Modal badge ── */
 .sfp-modal-badge {
   position: absolute;
   top: 12px;
@@ -208,14 +193,12 @@
 .sfp-modal-badge.brown { background: #7a2a18; display: block; }
 .sfp-modal-badge.green  { background: #3a6e4a; display: block; }
 
-/* ── Modal body ── */
 .sfp-modal-body { padding: 18px 22px 24px; }
 .sfp-modal-name  { font-size: 21px; font-weight: 700; color: #4a8a5a; margin-bottom: 4px; }
 .sfp-modal-meta  { display: flex; gap: 14px; font-size: 12px; color: #999; margin-bottom: 8px; }
 .sfp-modal-price { font-size: 18px; font-weight: 700; color: #222; margin-bottom: 4px; }
 .sfp-modal-hot   { font-size: 12px; color: #c0392b; margin-bottom: 14px; }
 
-/* ── Modal action buttons ── */
 .sfp-actions { display: flex; gap: 10px; margin-top: 16px; }
 .sfp-btn {
   flex: 1;
@@ -235,37 +218,23 @@
 .sfp-btn.solid { background: #4a8a5a; color: #fff; border: none; }
 .sfp-btn.solid:hover { background: #3d7a4d; }
 
-/* ── Responsive ── */
 @media (max-width: 720px) {
   .sfp-grid { grid-template-columns: 1fr; gap: 10px; }
   .sfp-gallery-main img { max-height: 220px; }
   .sfp-actions { flex-direction: column; }
 }
-@media (max-width: 400px) {
-  .sfp-grid { grid-template-columns: 1fr; }
-}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     EMBED START — copy everything from here down to EMBED END
-     and paste it into any page where you want the widget to appear.
-     ═══════════════════════════════════════════════════════════════════ -->
-
 <div id="solaris-fp-widget" aria-label="Solaris at Kissimmee Floor Plans">
-
-  <!-- Filter tabs -->
   <div class="sfp-filters" role="group" aria-label="Filter by bedrooms">
-    <button class="sfp-filter-btn active" data-filter="all">All</button>
+    <button class="sfp-filter-btn" data-filter="all">All</button>
     <button class="sfp-filter-btn" data-filter="1">1 Bed</button>
     <button class="sfp-filter-btn" data-filter="2">2 Bed</button>
     <button class="sfp-filter-btn" data-filter="3">3 Bed</button>
   </div>
-
-  <!-- Card grid -->
   <div class="sfp-grid" id="sfpGrid"></div>
-
   <p class="sfp-disclaimer">
     Floorplans are artist's rendering. All dimensions are approximate. Actual product and
     specifications may vary in dimension or detail. Not all features are available in every
@@ -274,7 +243,6 @@
   </p>
 </div>
 
-<!-- Lightbox overlay (rendered once, shared by all cards) -->
 <div class="sfp-overlay" id="sfpOverlay" role="dialog" aria-modal="true" aria-label="Floor plan detail">
   <div class="sfp-modal" id="sfpModal">
     <button class="sfp-close" id="sfpClose" aria-label="Close">&#x2715;</button>
@@ -400,10 +368,14 @@
     }
   ];
 
-  var grid    = document.getElementById('sfpGrid');
-  var overlay = document.getElementById('sfpOverlay');
+  var grid     = document.getElementById('sfpGrid');
+  var overlay  = document.getElementById('sfpOverlay');
   var btnClose = document.getElementById('sfpClose');
-  var curPlan = null;
+  var curPlan  = null;
+
+  /* ── Read ?beds= URL parameter and set default filter ── */
+  var urlParams     = new URLSearchParams(window.location.search);
+  var defaultFilter = urlParams.get('beds') || 'all';
 
   /* ── Build cards ── */
   plans.forEach(function (p) {
@@ -420,7 +392,7 @@
       '</div>' +
       '<div class="sfp-card-body">' +
         '<div class="sfp-card-name">' + p.name + '</div>' +
-        '<div class="sfp-card-meta">' + p.beds + ' bed &nbsp;·&nbsp; ' + p.baths + ' bath &nbsp;·&nbsp; ' + p.sqft + ' sq. ft.</div>' +
+        '<div class="sfp-card-meta">' + p.beds + ' bed &nbsp;&middot;&nbsp; ' + p.baths + ' bath &nbsp;&middot;&nbsp; ' + p.sqft + ' sq. ft.</div>' +
         '<div class="sfp-card-price">' + p.price +
           (p.hot ? '<span class="sfp-card-hot">' + p.hot + '</span>' : '') +
         '</div>' +
@@ -430,17 +402,22 @@
     grid.appendChild(card);
   });
 
-  /* ── Filter buttons ── */
-  document.querySelectorAll('.sfp-filter-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.sfp-filter-btn').forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var f = btn.dataset.filter;
-      document.querySelectorAll('.sfp-card').forEach(function (c) {
-        c.dataset.hidden = (f !== 'all' && c.dataset.beds !== f) ? 'true' : 'false';
-      });
+  /* ── Filter logic ── */
+  function applyFilter(f) {
+    document.querySelectorAll('.sfp-filter-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.filter === f);
     });
+    document.querySelectorAll('.sfp-card').forEach(function (c) {
+      c.dataset.hidden = (f !== 'all' && c.dataset.beds !== f) ? 'true' : 'false';
+    });
+  }
+
+  document.querySelectorAll('.sfp-filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { applyFilter(btn.dataset.filter); });
   });
+
+  /* ── Apply default filter from URL on load ── */
+  applyFilter(defaultFilter);
 
   /* ── Open modal ── */
   function openModal(p) {
@@ -501,10 +478,6 @@
 
 })();
 </script>
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     EMBED END
-     ═══════════════════════════════════════════════════════════════════ -->
 
 </body>
 </html>
