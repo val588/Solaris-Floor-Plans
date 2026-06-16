@@ -421,6 +421,12 @@
   /* ── Apply default filter from URL on load ── */
   applyFilter(defaultFilter);
 
+  /* ── Hide filter bar if a specific beds param is set ── */
+  if (defaultFilter !== 'all') {
+    var filtersEl = document.querySelector('.sfp-filters');
+    if (filtersEl) filtersEl.style.display = 'none';
+  }
+
   /* ── Open modal ── */
   function openModal(p) {
     curPlan = p;
