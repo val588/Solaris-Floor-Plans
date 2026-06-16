@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Solaris Floor Plans Widget</title>
+<style>
+/* ── USAGE ──────────────────────────────────────────────────────────────
+   Drop this file anywhere, or copy everything inside <body> into your page.
+   The widget is fully self-contained — no external CSS or JS required.
+   ────────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+#solaris-fp-widget {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #222;
+  padding: 8px 0;
+  width: 100%;
+}
+
+/* ── Filter tabs ── */
+.sfp-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.sfp-filter-btn {
+  padding: 7px 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  color: #555;
+  font-family: inherit;
+}
+.sfp-filter-btn:hover { border-color: #4a8a5a; color: #4a8a5a; }
+.sfp-filter-btn.active { background: #4a8a5a; color: #fff; border-color: #4a8a5a; }
+
+/* ── Grid ── */
+.sfp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.sfp-card {
+  background: #fff;
+  border: 1px solid #e4e4e0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+}
+.sfp-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.11);
+}
+.sfp-card[data-hidden="true"] { display: none; }
+.sfp-card:focus-visible { outline: 2px solid #4a8a5a; outline-offset: 2px; }
+
+/* ── Card image ── */
+.sfp-card-img {
+  position: relative;
+  width: 100%;
+  background: #f5f5f2;
+  overflow: hidden;
+}
+.sfp-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform .35s;
+}
+.sfp-card:hover .sfp-card-img img { transform: scale(1.05); }
+
+/* ── Card badge ── */
+.sfp-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+.sfp-badge.brown { background: #7a2a18; }
+.sfp-badge.green  { background: #3a6e4a; }
+
+/* ── Card body ── */
+.sfp-card-body { padding: 12px 14px 14px; }
+.sfp-card-name  { color: #4a8a5a; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.sfp-card-meta  { font-size: 11px; color: #999; margin-bottom: 5px; }
+.sfp-card-price { font-size: 13px; font-weight: 600; color: #222; }
+.sfp-card-hot   { font-size: 11px; color: #c0392b; font-weight: 500; margin-left: 5px; }
+
+/* ── Disclaimer ── */
+.sfp-disclaimer {
+  font-size: 10px;
+  color: #bbb;
+  margin-top: 18px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ── Overlay ── */
+.sfp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.62);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+}
+.sfp-overlay.open { opacity: 1; pointer-events: all; }
+
+/* ── Modal ── */
+.sfp-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 92vh;
+  overflow-y: auto;
+  transform: translateY(18px) scale(.98);
+  transition: transform .22s;
+  position: relative;
+}
+.sfp-overlay.open .sfp-modal { transform: translateY(0) scale(1); }
+
+/* ── Close button ── */
+.sfp-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.92);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: #333;
+  z-index: 10;
+  font-family: inherit;
+}
+.sfp-close:hover { background: #fff; }
+
+/* ── Gallery ── */
+.sfp-gallery { position: relative; background: #f5f5f2; }
+.sfp-gallery-main img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  display: block;
+}
+.sfp-gallery-thumbs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #edede8;
+  overflow-x: auto;
+}
+.sfp-gallery-thumbs img {
+  width: 62px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity .15s;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+.sfp-gallery-thumbs img:hover { opacity: .85; }
+.sfp-gallery-thumbs img.active { opacity: 1; border-color: #4a8a5a; }
+
+/* ── Modal badge ── */
+.sfp-modal-badge {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  display: none;
+}
+.sfp-modal-badge.brown { background: #7a2a18; display: block; }
+.sfp-modal-badge.green  { background: #3a6e4a; display: block; }
+
+/* ── Modal body ── */
+.sfp-modal-body { padding: 18px 22px 24px; }
+.sfp-modal-name  { font-size: 21px; font-weight: 700; color: #4a8a5a; margin-bottom: 4px; }
+.sfp-modal-meta  { display: flex; gap: 14px; font-size: 12px; color: #999; margin-bottom: 8px; }
+.sfp-modal-price { font-size: 18px; font-weight: 700; color: #222; margin-bottom: 4px; }
+.sfp-modal-hot   { font-size: 12px; color: #c0392b; margin-bottom: 14px; }
+
+/* ── Modal action buttons ── */
+.sfp-actions { display: flex; gap: 10px; margin-top: 16px; }
+.sfp-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  transition: all .15s;
+  font-family: inherit;
+}
+.sfp-btn.outline { border: 1.5px solid #ccc; background: #fff; color: #333; }
+.sfp-btn.outline:hover { background: #f5f5f2; border-color: #aaa; }
+.sfp-btn.solid { background: #4a8a5a; color: #fff; border: none; }
+.sfp-btn.solid:hover { background: #3d7a4d; }
+
+/* ── Responsive ── */
+@media (max-width: 520px) {
+  .sfp-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sfp-gallery-main img { max-height: 220px; }
+  .sfp-actions { flex-direction: column; }
+}
+@media (max-width: 340px) {
+  .sfp-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     EMBED START — copy everything from here down to EMBED END
+     and paste it into any page where you want the widget to appear.
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<div id="solaris-fp-widget" aria-label="Solaris at Kissimmee Floor Plans">
+
+  <!-- Filter tabs -->
+  <div class="sfp-filters" role="group" aria-label="Filter by bedrooms">
+    <button class="sfp-filter-btn active" data-filter="all">All</button>
+    <button class="sfp-filter-btn" data-filter="1">1 Bed</button>
+    <button class="sfp-filter-btn" data-filter="2">2 Bed</button>
+    <button class="sfp-filter-btn" data-filter="3">3 Bed</button>
+  </div>
+
+  <!-- Card grid -->
+  <div class="sfp-grid" id="sfpGrid"></div>
+
+  <p class="sfp-disclaimer">
+    Floorplans are artist's rendering. All dimensions are approximate. Actual product and
+    specifications may vary in dimension or detail. Not all features are available in every
+    rental home. Prices and availability are subject to change. Please see a representative
+    for details.
+  </p>
+</div>
+
+<!-- Lightbox overlay (rendered once, shared by all cards) -->
+<div class="sfp-overlay" id="sfpOverlay" role="dialog" aria-modal="true" aria-label="Floor plan detail">
+  <div class="sfp-modal" id="sfpModal">
+    <button class="sfp-close" id="sfpClose" aria-label="Close">&#x2715;</button>
+    <div class="sfp-gallery" id="sfpGallery">
+      <div class="sfp-gallery-main"><img id="sfpMainImg" src="" alt=""/></div>
+      <div class="sfp-gallery-thumbs" id="sfpThumbs"></div>
+      <div class="sfp-modal-badge" id="sfpModalBadge"></div>
+    </div>
+    <div class="sfp-modal-body">
+      <div class="sfp-modal-name"  id="sfpModalName"></div>
+      <div class="sfp-modal-meta"  id="sfpModalMeta"></div>
+      <div class="sfp-modal-price" id="sfpModalPrice"></div>
+      <div class="sfp-modal-hot"   id="sfpModalHot" style="display:none"></div>
+      <div class="sfp-actions"     id="sfpActions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var BASE = 'https://livethesolaris.com';
+
+  var plans = [
+    {
+      id: 'solis', name: 'The Solis', beds: 1, baths: 1, sqft: 769,
+      price: 'Starting at $1,640', badge: null, badgeType: null, hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Solis-40b9e1748a197f73c730256e4590e534.jpg',
+        BASE + '/assets/images/cache/The-Solis-Kitchen1-508faefe6a29e24a58bb701c88574170.jpg',
+        BASE + '/assets/images/cache/The-Solis-Living-Room1-a1d67a4e4ab21ef45b17089822f2152c.jpg'
+      ],
+      href: BASE + '/floorplans/the-solis/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/61/'
+    },
+    {
+      id: 'aria', name: 'The Aria', beds: 1, baths: 1, sqft: 773,
+      price: 'Starting at $1,645', badge: 'Double Patio Doors', badgeType: 'brown', hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Aria-29d64ade1c3414685c5f4df5c1df22f8.jpg',
+        BASE + '/assets/images/cache/The-Aria-Kitchen-1497fae98924d27445c0eadb1cc0033c.jpg',
+        BASE + '/assets/images/cache/The-Aria-Bedroom-a863d502440a0acc2f510cb3d7a6da21.jpg'
+      ],
+      href: BASE + '/floorplans/the-aria/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/62/'
+    },
+    {
+      id: 'luma', name: 'The Luma', beds: 1, baths: 1, sqft: 883,
+      price: 'Starting at $1,775', badge: 'Most Popular Floor Plan!', badgeType: 'green', hot: '🔥 Only 1 left!',
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Luma-b5fe35b6d6c21be2764cb5f3415709d5.jpg',
+        BASE + '/assets/images/cache/The-Luma-Kitchen1-62cf1e0f511cb18197e75c5032e715bf.jpg',
+        BASE + '/assets/images/cache/The-Luma-Bathroom1-c862e7a2553fe6c6a6fecad6497e447b.jpg'
+      ],
+      href: BASE + '/floorplans/the-luma/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/64/'
+    },
+    {
+      id: 'everly', name: 'The Everly', beds: 2, baths: 2, sqft: 1096,
+      price: 'Starting at $1,940', badge: null, badgeType: null, hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Everly-2772f1e413d5bdfdf5de036cbdf8d195.jpg',
+        BASE + '/assets/images/cache/The-Everly-Kitchen-b966144025993a4a92d9b1e0eb738200.jpg',
+        BASE + '/assets/images/cache/The-Everly-Living-Room-c5357fd3b397bcbf9c4c8e7d64dadf8c.jpg'
+      ],
+      href: BASE + '/floorplans/the-everly/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/60/'
+    },
+    {
+      id: 'palmera', name: 'The Palmera', beds: 2, baths: 2, sqft: 1124,
+      price: 'Contact Us', badge: 'Most Popular Floor Plan!', badgeType: 'green', hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Palmera-b77e484caecd8f227613d56996dc8859.jpg',
+        BASE + '/assets/images/cache/The-Palmera-Living-Room1-443128afee224af5f91d9473d4d60ad2.jpg',
+        BASE + '/assets/images/cache/The-Palmera-Bedroom1-9a5733190d3150d7a887918d3d0b882b.jpg'
+      ],
+      href: BASE + '/floorplans/the-palmera/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/63/'
+    },
+    {
+      id: 'maren', name: 'The Maren', beds: 2, baths: 2, sqft: 1124,
+      price: 'Contact Us', badge: null, badgeType: null, hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Maren-5bf4908720200368710235c3e50716af.jpg',
+        BASE + '/assets/images/cache/The-Maren-Kitchen-f8e561c636fb428bc5fdd0db418c2da3.jpg'
+      ],
+      href: BASE + '/floorplans/the-maren/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/67/'
+    },
+    {
+      id: 'nola', name: 'The Nola', beds: 2, baths: 2, sqft: 1124,
+      price: 'Starting at $2,230', badge: 'Laundry Room', badgeType: 'brown', hot: '🔥 Only 1 left!',
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Nola-57fe52f7717e33ebdc832c591d9bddd8.jpg',
+        BASE + '/assets/images/cache/The-Nola-Kitchen1-2c2250586ee4b88a885a05289ff41d0f.jpg',
+        BASE + '/assets/images/cache/The-Nola-Extra-Large-Kitchen-9751c946dcb7a3326be553f8f1196ad1.jpg',
+        BASE + '/assets/images/cache/The-Nola-Living-Room1-adec7d60696e09504bdbd39b43c0d0e2.jpg'
+      ],
+      href: BASE + '/floorplans/the-nola/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/65/'
+    },
+    {
+      id: 'cypress', name: 'The Cypress', beds: 3, baths: 2, sqft: 1341,
+      price: 'Starting at $2,636', badge: 'Trending Now', badgeType: 'brown', hot: null,
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Cypress-1804388ec797d52ba6c5d7085a60591b.jpg',
+        BASE + '/assets/images/cache/The-Cypress-Kitchen-11212035b958fd7835c4b94cda8ed46b.jpg',
+        BASE + '/assets/images/cache/The-Cypress-Entry-07e8cb8aef972676158e27ec4fcad35c.jpg'
+      ],
+      href: BASE + '/floorplans/the-cypress/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/59/'
+    },
+    {
+      id: 'mirada', name: 'The Mirada', beds: 2, baths: 2, sqft: 1652,
+      price: 'Starting at $2,810', badge: 'Carriage Home', badgeType: 'brown', hot: '🔥 Only 3 left!',
+      imgs: [
+        BASE + '/assets/images/cache/RD3-Solaris-at-Kissimmee-The-Mirada-99d70b2fcdc261fa0fc249a9456f9d9b.jpg',
+        BASE + '/assets/images/cache/The-Mirada-Kitchen1-7b4adda7a660c3a280f869cae162d94d.jpg',
+        BASE + '/assets/images/cache/The-Mirada-Loft1-19c8a7beb64829cf09c62c73972ff5cb.jpg',
+        BASE + '/assets/images/cache/The-Mirada-Loft-Area-e8bdd78f4cfc14723e33af93cb763ad7.jpg'
+      ],
+      href: BASE + '/floorplans/the-mirada/',
+      tour: 'https://storage.net-fs.com/hosting/7509729/66/'
+    }
+  ];
+
+  var grid    = document.getElementById('sfpGrid');
+  var overlay = document.getElementById('sfpOverlay');
+  var btnClose = document.getElementById('sfpClose');
+  var curPlan = null;
+
+  /* ── Build cards ── */
+  plans.forEach(function (p) {
+    var card = document.createElement('div');
+    card.className = 'sfp-card';
+    card.dataset.beds = p.beds;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', p.name + ', ' + p.beds + ' bed ' + p.baths + ' bath, ' + p.sqft + ' sq ft, ' + p.price);
+    card.innerHTML =
+      '<div class="sfp-card-img" style="aspect-ratio:' + (p.beds === 1 ? '3/4' : '4/3') + ';min-height:140px">' +
+        '<img src="' + p.imgs[0] + '" alt="' + p.name + '" loading="lazy"/>' +
+        (p.badge ? '<div class="sfp-badge ' + (p.badgeType || '') + '">' + p.badge + '</div>' : '') +
+      '</div>' +
+      '<div class="sfp-card-body">' +
+        '<div class="sfp-card-name">' + p.name + '</div>' +
+        '<div class="sfp-card-meta">' + p.beds + ' bed &nbsp;·&nbsp; ' + p.baths + ' bath &nbsp;·&nbsp; ' + p.sqft + ' sq. ft.</div>' +
+        '<div class="sfp-card-price">' + p.price +
+          (p.hot ? '<span class="sfp-card-hot">' + p.hot + '</span>' : '') +
+        '</div>' +
+      '</div>';
+    card.addEventListener('click', function () { openModal(p); });
+    card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') openModal(p); });
+    grid.appendChild(card);
+  });
+
+  /* ── Filter buttons ── */
+  document.querySelectorAll('.sfp-filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.sfp-filter-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var f = btn.dataset.filter;
+      document.querySelectorAll('.sfp-card').forEach(function (c) {
+        c.dataset.hidden = (f !== 'all' && c.dataset.beds !== f) ? 'true' : 'false';
+      });
+    });
+  });
+
+  /* ── Open modal ── */
+  function openModal(p) {
+    curPlan = p;
+    document.getElementById('sfpModalName').textContent = p.name;
+    document.getElementById('sfpModalMeta').innerHTML =
+      '<span>' + p.beds + ' bed</span><span>' + p.baths + ' bath</span><span>' + p.sqft + ' sq. ft.</span>';
+    document.getElementById('sfpModalPrice').textContent = p.price;
+
+    var hotEl = document.getElementById('sfpModalHot');
+    hotEl.style.display = p.hot ? 'block' : 'none';
+    if (p.hot) hotEl.textContent = p.hot;
+
+    var badgeEl = document.getElementById('sfpModalBadge');
+    badgeEl.className = 'sfp-modal-badge' + (p.badgeType ? ' ' + p.badgeType : '');
+    badgeEl.textContent = p.badge || '';
+
+    setGallery(p.imgs, 0);
+
+    document.getElementById('sfpActions').innerHTML =
+      '<a class="sfp-btn outline" href="' + p.tour + '" target="_blank" rel="noopener">Virtual Tour</a>' +
+      '<a class="sfp-btn solid"   href="' + p.href + '" target="_blank" rel="noopener">View Floor Plan</a>';
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    btnClose.focus();
+  }
+
+  /* ── Gallery switcher ── */
+  function setGallery(imgs, activeIdx) {
+    document.getElementById('sfpMainImg').src = imgs[activeIdx];
+    document.getElementById('sfpMainImg').alt = curPlan ? curPlan.name : '';
+    var thumbsEl = document.getElementById('sfpThumbs');
+    thumbsEl.innerHTML = '';
+    if (imgs.length > 1) {
+      imgs.forEach(function (src, i) {
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Photo ' + (i + 1);
+        if (i === activeIdx) img.classList.add('active');
+        img.addEventListener('click', (function (idx) { return function () { setGallery(imgs, idx); }; })(i));
+        thumbsEl.appendChild(img);
+      });
+      thumbsEl.style.display = 'flex';
+    } else {
+      thumbsEl.style.display = 'none';
+    }
+  }
+
+  /* ── Close modal ── */
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  btnClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     EMBED END
+     ═══════════════════════════════════════════════════════════════════ -->
+
+</body>
+</html>
